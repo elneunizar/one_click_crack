@@ -18,4 +18,5 @@ echo ${interfaces[@]}
 for i in ${interfaces[@]}; do
 	#echo $i
 	airmon-ng start $i
+	#For every process of aircrack
 done
