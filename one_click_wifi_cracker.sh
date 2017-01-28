@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #declare an variabel for interface
-declare -a interfaces
+declare -a intInit
 #declare an array variabel for monitor interface
-declare -a mon_ints
+declare -a monInt
 #declare an variabel of transmission power
 declare -A intTxPower
 #read a list of interface 
@@ -13,24 +13,34 @@ declare -A intTxPower
 function setInt {
 	readarray -t monInt < <(iwconfig 2>&1 | egrep "[Mm]onit\w" | awk '{print $1}')
 	readarray -t intInit < <(/usr/bin/airmon | grep "-" | cut -f 1)
-	for i in ${intInit[@]}; do
-		intTxPower[$i]=$(iwconfig $i | egrep -o "Tx-Power=[0-9]+ dBm" | egrep -o "[0-9]+")
+	for i in ${intInit[@]} ; do
+		intTxPower[$i]=$(($(iwconfig $i | egrep -o "Tx-Power=[0-9]+ dBm" | egrep -o "[0-9]+")+0))
 	done
 	let i=0
-	for j in ${intTxPower[@]}; do
-		if [ $j  > 60 ];
-			if [ "${intInt[$((i++))]}" == "${monInt[$((i++))]}" ]; then
-			       #i will done it with a function later
-		       elif [ "${intInt[$((i++))]}" != "${monInt[$((i++))]}" ]; then
-			       #i will done it with a function later
-		       fi	       
+	echo ${intTxPower[@]}
+	for j in ${intTxPower[@]} ; do
+		if [ $j  -gt 60 ]; then
+			#echo ${intInit[$i]}
+			#echo ${montInt[$i]}
+			if [ "${intInit[$i]}" = "${monInt[$i]}" ]; then
+				echo ${intInit[$i]}
+				echo ${monInt[$i]}
+			elif [ "${intInit[$i]}" != "${monInt[$i]}" ]; then
+				airmon-ng start ${intInit[$i]}
+				#airmon-ng check ${intInit[$i]}
+			fi
+	       else
+		       ifconfig ${intInit[$i]} down
 	       fi
+	       ((i++))
        done
+
 	#echo ${intTxPower[wlan0]}
 }
+setInt 
 #Attack the wireless
-function attackIt {
-}
+#function attackIt {
+#}
 
 #for i in ${interfaces[@]}; do
 #	echo ${intTxPower[i]}
